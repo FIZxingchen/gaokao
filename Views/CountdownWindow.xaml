@@ -1,0 +1,260 @@
+﻿<Window x:Class="gokao.CountdownWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:gokao"
+        Title="{Binding [CountdownWinTitle], Source={x:Static local:LanguageManager.Instance}}"
+        WindowStyle="None"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Loaded="Window_Loaded"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <!-- 流星拖尾渐变（星星尾巴：上端透明、下端亮，随星星一起移动） -->
+        <LinearGradientBrush x:Key="StarTailBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#00FFD54F" Offset="0"/>
+            <GradientStop Color="#4DFFD54F" Offset="1"/>
+        </LinearGradientBrush>
+        <!-- 流星本体渐变（左端透明、右端亮，亮端为飞行方向头部） -->
+        <LinearGradientBrush x:Key="CometTailBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#00FFE08A" Offset="0"/>
+            <GradientStop Color="#7DFFE08A" Offset="0.85"/>
+            <GradientStop Color="#FFFFE08A" Offset="1"/>
+        </LinearGradientBrush>
+        <!-- 赛博风扫描线纹理（每 2px 一条暗线，对比度更高，模拟 CRT） -->
+        <DrawingBrush x:Key="ScanlineBrush" TileMode="Tile" Stretch="None"
+                      Viewport="0,0,1,2" ViewportUnits="Absolute">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Transparent">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,1,2"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#33000000">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,1,1,1"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+        <!-- 故障撕裂带渐变（半透明亮带，模拟信号干扰条） -->
+        <LinearGradientBrush x:Key="GlitchBandBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#00FFFFFF" Offset="0"/>
+            <GradientStop Color="#44FFFFFF" Offset="0.3"/>
+            <GradientStop Color="#66FFFFFF" Offset="0.5"/>
+            <GradientStop Color="#44FFFFFF" Offset="0.7"/>
+            <GradientStop Color="#00FFFFFF" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Grid x:Name="MainGrid" MouseLeftButtonDown="OnMouseLeftButtonDown">
+        <!-- 普通文本倒计时（无动画 / 呼吸缩放 / 赛博风） -->
+        <Grid>
+            <!-- RGB 分离层：红/青/品红通道，仅赛博风故障态显示 -->
+            <TextBlock x:Name="glitchRed" Foreground="#80FF0033" FontFamily="Microsoft YaHei"
+                       FontWeight="Bold" TextAlignment="Center" Padding="8" TextWrapping="NoWrap"
+                       Visibility="Collapsed" IsHitTestVisible="False" Text="">
+                <TextBlock.RenderTransform>
+                    <TranslateTransform X="-3" Y="0"/>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <TextBlock x:Name="glitchCyan" Foreground="#8000FFFF" FontFamily="Microsoft YaHei"
+                       FontWeight="Bold" TextAlignment="Center" Padding="8" TextWrapping="NoWrap"
+                       Visibility="Collapsed" IsHitTestVisible="False" Text="">
+                <TextBlock.RenderTransform>
+                    <TranslateTransform X="3" Y="0"/>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <TextBlock x:Name="glitchMagenta" Foreground="#60FF00FF" FontFamily="Microsoft YaHei"
+                       FontWeight="Bold" TextAlignment="Center" Padding="8" TextWrapping="NoWrap"
+                       Visibility="Collapsed" IsHitTestVisible="False" Text="">
+                <TextBlock.RenderTransform>
+                    <TranslateTransform X="0" Y="0"/>
+                </TextBlock.RenderTransform>
+            </TextBlock>
+
+            <TextBlock x:Name="countdownText"
+                       Foreground="White"
+                       FontFamily="Microsoft YaHei"
+                       FontWeight="Bold"
+                       TextAlignment="Center"
+                       Padding="8"
+                       TextWrapping="NoWrap"
+                       Visibility="Visible"
+                       RenderTransformOrigin="0.5,0.5"
+                       Text="高考倒计时：\n999天 23时 59分 59秒">
+                <TextBlock.RenderTransform>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </TextBlock.RenderTransform>
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="Black" ShadowDepth="0" BlurRadius="8" Opacity="0.6"/>
+                </TextBlock.Effect>
+            </TextBlock>
+
+            <!-- 扫描线遮罩（仅赛博风模式显示） -->
+            <Rectangle x:Name="scanlineOverlay" Visibility="Collapsed" IsHitTestVisible="False"
+                       Fill="{StaticResource ScanlineBrush}"/>
+
+            <!-- 故障撕裂带（水平亮条，故障态时随机出现，模拟信号干扰） -->
+            <Rectangle x:Name="glitchBand" Visibility="Collapsed" IsHitTestVisible="False"
+                       Fill="{StaticResource GlitchBandBrush}" Height="6"
+                       VerticalAlignment="Top" HorizontalAlignment="Stretch"/>
+
+            <!-- 冰裂纹画布（仅冰晶模式裂纹时显示锯齿裂纹线 + 碎屑粒子） -->
+            <Canvas x:Name="crackCanvas" Visibility="Collapsed" IsHitTestVisible="False"/>
+        </Grid>
+
+        <!-- 雪花（仅冰晶模式显示，缓缓飘落） -->
+        <TextBlock x:Name="snow1" Text="❄" FontSize="12" Foreground="#88FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow2" Text="❅" FontSize="9" Foreground="#70FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow3" Text="❆" FontSize="14" Foreground="#90FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow4" Text="❄" FontSize="8" Foreground="#60FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow5" Text="❅" FontSize="11" Foreground="#80FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow6" Text="❆" FontSize="7" Foreground="#55FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow7" Text="❄" FontSize="10" Foreground="#75FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="snow8" Text="❅" FontSize="13" Foreground="#85FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+        <!-- 黄色半透明坠落小星星（带流星拖尾；仅流光模式显示，随机散落窗口各处缓缓飘落） -->
+        <Grid x:Name="fallStar1" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Rectangle Width="2.5" Height="40" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Fill="{StaticResource StarTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✦" FontSize="20" Foreground="#FFFFD54F" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
+        <Grid x:Name="fallStar2" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Rectangle Width="2.5" Height="34" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Fill="{StaticResource StarTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✧" FontSize="14" Foreground="#FFFFD54F" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
+        <Grid x:Name="fallStar3" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Rectangle Width="2.5" Height="44" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Fill="{StaticResource StarTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✦" FontSize="17" Foreground="#FFFFD54F" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
+        <Grid x:Name="fallStar4" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Rectangle Width="2.5" Height="36" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Fill="{StaticResource StarTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✧" FontSize="12" Foreground="#FFFFD54F" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
+        <Grid x:Name="fallStar5" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Rectangle Width="2.5" Height="42" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Fill="{StaticResource StarTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✦" FontSize="15" Foreground="#FFFFD54F" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
+        <Grid x:Name="fallStar6" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Rectangle Width="2.5" Height="38" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Fill="{StaticResource StarTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✧" FontSize="19" Foreground="#FFFFD54F" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+        </Grid>
+
+        <!-- 星空背景微点（仅流光模式显示，极淡，零动画零成本） -->
+        <TextBlock x:Name="bgDot1" Text="✦" FontSize="10" Foreground="#26FFD54F" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="18,10,0,0"/>
+        <TextBlock x:Name="bgDot2" Text="✧" FontSize="8" Foreground="#1AFFD54F" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,4,0,0"/>
+        <TextBlock x:Name="bgDot3" Text="✦" FontSize="12" Foreground="#1FFFD54F" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="190,22,0,0"/>
+        <TextBlock x:Name="bgDot4" Text="✧" FontSize="9" Foreground="#24FFD54F" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="85,36,0,0"/>
+        <TextBlock x:Name="bgDot5" Text="✦" FontSize="7" Foreground="#22FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="160,28,0,0"/>
+        <TextBlock x:Name="bgDot6" Text="✧" FontSize="11" Foreground="#1DFFD54F" Visibility="Collapsed" IsHitTestVisible="False"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" Margin="45,18,0,0"/>
+
+        <!-- 流星（偶尔斜向划过窗口，GPU 合成） -->
+        <Grid x:Name="comet1" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="35"/>
+                    <TranslateTransform x:Name="comet1Translate" X="0" Y="0"/>
+                </TransformGroup>
+            </Grid.RenderTransform>
+            <Rectangle Width="200" Height="2.5" HorizontalAlignment="Right" VerticalAlignment="Center"
+                       Fill="{StaticResource CometTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✦" FontSize="11" Foreground="#FFFFE08A" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+        <Grid x:Name="comet2" Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,0">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="25"/>
+                    <TranslateTransform x:Name="comet2Translate" X="0" Y="0"/>
+                </TransformGroup>
+            </Grid.RenderTransform>
+            <Rectangle Width="150" Height="2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                       Fill="{StaticResource CometTailBrush}" IsHitTestVisible="False"/>
+            <TextBlock Text="✧" FontSize="9" Foreground="#FFFFE08A" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- 3D翻页倒计时 -->
+        <Grid x:Name="flipGrid" Visibility="Collapsed" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 标题 -->
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="12" x:Name="flipTitle" Text="高考倒计时"
+                       FontSize="32" Foreground="White" FontWeight="Bold"
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+            <!-- 天数：3位 -->
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="0" x:Name="dayHundreds" Value="0" Width="40" Height="60"/>
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="1" x:Name="dayTens" Value="0" Width="40" Height="60"/>
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="2" x:Name="dayOnes" Value="0" Width="40" Height="60"/>
+            <TextBlock Grid.Row="1" Grid.Column="3" x:Name="flipLabelDays" Text="{Binding [LabelDays], Source={x:Static local:LanguageManager.Instance}}" FontSize="24" Foreground="White"
+                       VerticalAlignment="Center" Margin="5,0,5,0"/>
+
+            <!-- 小时：2位 -->
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="4" x:Name="hourTens" Value="0" Width="40" Height="60"/>
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="5" x:Name="hourOnes" Value="0" Width="40" Height="60"/>
+            <TextBlock Grid.Row="1" Grid.Column="6" x:Name="flipLabelHours" Text="{Binding [LabelHours], Source={x:Static local:LanguageManager.Instance}}" FontSize="24" Foreground="White"
+                       VerticalAlignment="Center" Margin="5,0,5,0"/>
+
+            <!-- 分钟：2位 -->
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="7" x:Name="minuteTens" Value="0" Width="40" Height="60"/>
+            <local:FlipDigitControl Grid.Row="1" Grid.Column="8" x:Name="minuteOnes" Value="0" Width="40" Height="60"/>
+            <TextBlock Grid.Row="1" Grid.Column="9" x:Name="flipLabelMinutes" Text="{Binding [LabelMinutes], Source={x:Static local:LanguageManager.Instance}}" FontSize="24" Foreground="White"
+                       VerticalAlignment="Center" Margin="5,0,5,0"/>
+
+            <!-- 秒：2位（第二行） -->
+            <local:FlipDigitControl Grid.Row="2" Grid.Column="0" x:Name="secondTens" Value="0" Width="40" Height="60"/>
+            <local:FlipDigitControl Grid.Row="2" Grid.Column="1" x:Name="secondOnes" Value="0" Width="40" Height="60"/>
+            <TextBlock Grid.Row="2" Grid.Column="2" x:Name="flipLabelSeconds" Text="{Binding [LabelSeconds], Source={x:Static local:LanguageManager.Instance}}" FontSize="24" Foreground="White"
+                       VerticalAlignment="Center" Margin="5,0,0,0"/>
+        </Grid>
+    </Grid>
+</Window>

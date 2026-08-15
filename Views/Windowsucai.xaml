@@ -1,0 +1,102 @@
+﻿<Window x:Class="gokao.Windowsucai"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:gokao"
+        Title="{Binding [SucaiTitle], Source={x:Static local:LanguageManager.Instance}}" Height="600" Width="1000"
+        Loaded="Window_Loaded"
+        Background="#F5F5F5">
+    <Grid>
+        <!-- 顶部控制区 -->
+        <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Height="60"
+                VerticalAlignment="Top">
+            <StackPanel Orientation="Horizontal" Margin="20,0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding [WallpaperLib], Source={x:Static local:LanguageManager.Instance}}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <Button x:Name="btnRefresh" Content="{Binding [RefreshList], Source={x:Static local:LanguageManager.Instance}}" Click="BtnRefresh_Click" Margin="0,0,10,0"
+                        Background="#E8F4FD" Foreground="#1976D2" BorderBrush="#BBDEFB" Cursor="Hand"
+                        MinWidth="80" Padding="10,0" Height="30"/>
+                <Button x:Name="btnAdd" Content="{Binding [AddWallpaper], Source={x:Static local:LanguageManager.Instance}}" Click="BtnAdd_Click"
+                        Background="#E3F2FD" Foreground="#0D47A1" BorderBrush="#90CAF9" Cursor="Hand"
+                        MinWidth="80" Padding="10,0" Height="30" Margin="0,0,20,0"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding [StyleMode], Source={x:Static local:LanguageManager.Instance}}" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#616161"/>
+                    <ComboBox x:Name="wallpaperStyle" SelectedIndex="0" Width="120" Background="White">
+                        <ComboBoxItem Tag="10">
+                            <TextBlock Text="{Binding [Fill], Source={x:Static local:LanguageManager.Instance}}"/>
+                        </ComboBoxItem>
+                        <ComboBoxItem Tag="6">
+                            <TextBlock Text="{Binding [Fit], Source={x:Static local:LanguageManager.Instance}}"/>
+                        </ComboBoxItem>
+                        <ComboBoxItem Tag="2">
+                            <TextBlock Text="{Binding [Stretch], Source={x:Static local:LanguageManager.Instance}}"/>
+                        </ComboBoxItem>
+                        <ComboBoxItem Tag="0">
+                            <TextBlock Text="{Binding [Tile], Source={x:Static local:LanguageManager.Instance}}"/>
+                        </ComboBoxItem>
+                        <ComboBoxItem Tag="0">
+                            <TextBlock Text="{Binding [Center], Source={x:Static local:LanguageManager.Instance}}"/>
+                        </ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- 壁纸展示区 -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Margin="10,70,10,215">
+            <WrapPanel x:Name="wallpaperPanel" Margin="10"/>
+        </ScrollViewer>
+
+        <!-- 倒计时自动切换壁纸 -->
+        <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1,1,0,0" Height="175"
+                VerticalAlignment="Bottom" Margin="0,0,0,30">
+            <StackPanel Margin="16,10">
+                <TextBlock Text="{Binding [WsScheduleTitle], Source={x:Static local:LanguageManager.Instance}}"
+                           FontSize="14" FontWeight="Bold" Margin="0,0,0,8"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding [WsEvent], Source={x:Static local:LanguageManager.Instance}}"
+                               VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#616161"/>
+                    <ComboBox x:Name="scheduleEventCombo" Width="160" Height="28"
+                              DisplayMemberPath="Name"
+                              SelectionChanged="ScheduleEventCombo_SelectionChanged" Margin="0,0,16,0"/>
+                    <TextBlock Text="{Binding [WsDaysLeft], Source={x:Static local:LanguageManager.Instance}}"
+                               VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#616161"/>
+                    <TextBox x:Name="scheduleDaysBox" Width="60" Height="28" VerticalContentAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBlock Text="{Binding [WsDays], Source={x:Static local:LanguageManager.Instance}}"
+                               VerticalAlignment="Center" Margin="0,0,16,0" Foreground="#616161"/>
+                    <Button x:Name="pickWallpaperBtn" Content="{Binding [WsPickWallpaper], Source={x:Static local:LanguageManager.Instance}}"
+                            Click="PickWallpaperBtn_Click" MinWidth="90" Padding="10,0" Height="28" Margin="0,0,8,0" Cursor="Hand"/>
+                    <TextBlock x:Name="scheduleWallpaperName" Text="—" VerticalAlignment="Center" Foreground="#616161"
+                               Margin="0,0,16,0" MaxWidth="180" TextTrimming="CharacterEllipsis"/>
+                    <Button x:Name="addRuleBtn" Content="{Binding [WsAddRule], Source={x:Static local:LanguageManager.Instance}}"
+                            Click="AddRuleBtn_Click" Width="90" Height="28" Background="#E8F5E9" Cursor="Hand"/>
+                </StackPanel>
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ListBox x:Name="scheduleRuleList" Height="56" Margin="0,0,10,0"/>
+                    <Button Grid.Column="1" x:Name="deleteRuleBtn" Content="{Binding [WsDeleteRule], Source={x:Static local:LanguageManager.Instance}}"
+                            Click="DeleteRuleBtn_Click" Width="90" Height="28" VerticalAlignment="Top" Cursor="Hand"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- 状态栏 -->
+        <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1,0,0,0"
+                Height="30" VerticalAlignment="Bottom">
+            <TextBlock x:Name="statusBar" Text="{Binding [Ready], Source={x:Static local:LanguageManager.Instance}}" Margin="10,0" VerticalAlignment="Center"
+                       Foreground="#616161" FontSize="12"/>
+        </Border>
+
+        <!-- 加载指示器 -->
+        <Grid x:Name="loadingIndicator" Visibility="Collapsed" Background="White" Opacity="0.8"
+              IsHitTestVisible="False">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="5"/>
+                <TextBlock Text="{Binding [Loading], Source={x:Static local:LanguageManager.Instance}}" Margin="0,10" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

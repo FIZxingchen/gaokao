@@ -1,0 +1,226 @@
+﻿<Window x:Class="gokao.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:gokao"
+        Title="{Binding [WinTitle], Source={x:Static local:LanguageManager.Instance}}"
+        Width="1012" Height="620"
+        MinWidth="820" MinHeight="560"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F6FA"
+        FontFamily="Microsoft YaHei UI, Segoe UI"
+        TextElement.Foreground="#374151">
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 主内容：左栏外观 + 右栏行为/事件 -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 1. 外观设置 -->
+            <GroupBox Grid.Column="0" Margin="0,0,9,0"
+                      Header="{Binding [GroupAppearance], Source={x:Static local:LanguageManager.Instance}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="88"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 语言 -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [Language], Source={x:Static local:LanguageManager.Instance}}" Margin="0,0,10,0"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="languageCombo" Height="30"
+                              SelectionChanged="LanguageCombo_SelectionChanged">
+                        <ComboBoxItem Content="{Binding [LangAuto], Source={x:Static local:LanguageManager.Instance}}" Tag="Auto"/>
+                        <ComboBoxItem Content="{Binding [LangZh], Source={x:Static local:LanguageManager.Instance}}" Tag="zh"/>
+                        <ComboBoxItem Content="{Binding [LangEn], Source={x:Static local:LanguageManager.Instance}}" Tag="en"/>
+                    </ComboBox>
+
+                    <!-- 透明度 -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [Opacity], Source={x:Static local:LanguageManager.Instance}}" Margin="0,12,10,0"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Slider x:Name="opacitySlider" Minimum="0.1" Maximum="1" SmallChange="0.1" Value="0.7" Width="170"/>
+                        <TextBlock x:Name="opacityValueText" Text="70%" Margin="10,0,0,0" VerticalAlignment="Center" Width="40"/>
+                    </StackPanel>
+
+                    <!-- 字体大小 -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [FontSize], Source={x:Static local:LanguageManager.Instance}}" Margin="0,12,10,0"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Slider x:Name="fontSizeSlider" Minimum="12" Maximum="72" SmallChange="2" Value="24" Width="170"/>
+                        <TextBlock x:Name="fontSizeValueText" Text="24" Margin="10,0,0,0" VerticalAlignment="Center" Width="40"/>
+                    </StackPanel>
+
+                    <!-- 字体 -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [Font], Source={x:Static local:LanguageManager.Instance}}" Margin="0,12,10,0"/>
+                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="fontFamilyCombo" Height="30" Margin="0,12,0,0"
+                              SelectedValuePath="Content" SelectionChanged="FontFamilyCombo_SelectionChanged"/>
+
+                    <!-- 文字颜色 -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [TextColor], Source={x:Static local:LanguageManager.Instance}}" Margin="0,12,10,0"/>
+                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button x:Name="OpenColorDialogBtn" 
+                                Content="{Binding [ChooseColor], Source={x:Static local:LanguageManager.Instance}}" MinWidth="100" Click="OpenColorDialogBtn_Click"/>
+                        <Button x:Name="resetStyleBtn" 
+                                Content="{Binding [ResetStyle], Source={x:Static local:LanguageManager.Instance}}" MinWidth="110" Margin="10,0,0,0" Click="ResetStyleBtn_Click"/>
+                        <Border x:Name="colorPreview" Width="30" Height="30" Background="White" BorderBrush="Gray" BorderThickness="1" Margin="10,0,0,0" CornerRadius="4"/>
+                    </StackPanel>
+
+                    <!-- 背景图片 -->
+                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [BgImage], Source={x:Static local:LanguageManager.Instance}}" Margin="0,12,10,0"/>
+                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button x:Name="selectBgBtn" 
+                                Content="{Binding [ChooseImage], Source={x:Static local:LanguageManager.Instance}}" MinWidth="100" Click="SelectBgBtn_Click"/>
+                        <Button x:Name="clearBgBtn" 
+                                Content="{Binding [Clear], Source={x:Static local:LanguageManager.Instance}}" MinWidth="80" Margin="10,0,0,0" Click="ClearBgBtn_Click"/>
+                    </StackPanel>
+
+                    <!-- 背景预览 -->
+                    <Border Grid.Row="6" Grid.ColumnSpan="2" x:Name="bgPreview" Height="56"
+                            BorderBrush="#D9DCE1" BorderThickness="1" Margin="0,10,0,0" CornerRadius="4">
+                        <TextBlock Text="{Binding [NoBg], Source={x:Static local:LanguageManager.Instance}}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#9AA3AF"/>
+                    </Border>
+
+                    <!-- 动画效果 -->
+                    <TextBlock Grid.Row="7" Grid.Column="0" Style="{StaticResource LabelText}"
+                               Text="{Binding [Animation], Source={x:Static local:LanguageManager.Instance}}" Margin="0,12,10,0"/>
+                    <ComboBox Grid.Row="7" Grid.Column="1" x:Name="animationCombo" Height="30" Margin="0,12,0,0"
+                              SelectionChanged="AnimationCombo_SelectionChanged">
+                        <ComboBoxItem Content="{Binding [AnimNone], Source={x:Static local:LanguageManager.Instance}}" Tag="None" IsSelected="True"/>
+                        <ComboBoxItem Content="{Binding [AnimBreath], Source={x:Static local:LanguageManager.Instance}}" Tag="Breath"/>
+                        <ComboBoxItem Content="{Binding [AnimFlow], Source={x:Static local:LanguageManager.Instance}}" Tag="Flow"
+                                      ToolTip="{Binding [AnimFlowHint], Source={x:Static local:LanguageManager.Instance}}"/>
+                        <ComboBoxItem Content="{Binding [AnimFlip], Source={x:Static local:LanguageManager.Instance}}" Tag="Flip"/>
+                        <ComboBoxItem Content="{Binding [AnimCyber], Source={x:Static local:LanguageManager.Instance}}" Tag="Cyber"
+                                      ToolTip="{Binding [AnimCyberHint], Source={x:Static local:LanguageManager.Instance}}"/>
+                        <ComboBoxItem Content="{Binding [AnimIce], Source={x:Static local:LanguageManager.Instance}}" Tag="Ice"
+                                      ToolTip="{Binding [AnimIceHint], Source={x:Static local:LanguageManager.Instance}}"/>
+                    </ComboBox>
+                </Grid>
+            </GroupBox>
+
+            <!-- 右栏 -->
+            <StackPanel Grid.Column="1" Margin="9,0,0,0">
+
+                <!-- 2. 行为设置 -->
+                <GroupBox Header="{Binding [GroupBehavior], Source={x:Static local:LanguageManager.Instance}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="lockWindowCheck" Height="28" VerticalContentAlignment="Center"
+                                  Content="{Binding [LockWindow], Source={x:Static local:LanguageManager.Instance}}"/>
+                        <CheckBox Grid.Row="0" Grid.Column="1" x:Name="topmostCheck" Height="28" VerticalContentAlignment="Center"
+                                  Content="{Binding [Topmost], Source={x:Static local:LanguageManager.Instance}}"/>
+                        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="autoStartCheck" Height="28" VerticalContentAlignment="Center"
+                                  Content="{Binding [AutoStart], Source={x:Static local:LanguageManager.Instance}}"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" x:Name="clickThroughCheck" Height="28" VerticalContentAlignment="Center"
+                                  Content="{Binding [ClickThrough], Source={x:Static local:LanguageManager.Instance}}"/>
+                        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="startupTipCheck" Height="28" VerticalContentAlignment="Center"
+                                  Content="{Binding [StartupTipOption], Source={x:Static local:LanguageManager.Instance}}"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- 3. 自定义事件管理 -->
+                <GroupBox Margin="0,18,0,0"
+                          Header="{Binding [GroupEvents], Source={x:Static local:LanguageManager.Instance}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ListBox Grid.Row="0" x:Name="eventListBox" Height="130"
+                                 SelectionChanged="EventListBox_SelectionChanged" Margin="0,0,0,10"
+                                 MouseDoubleClick="EventListBox_MouseDoubleClick">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <CheckBox IsChecked="{Binding IsActive}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                                  Checked="EventActiveCheckBox_Changed" Unchecked="EventActiveCheckBox_Changed"
+                                                  ToolTip="勾选后在桌面显示该事件的倒计时窗口"/>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="13" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button x:Name="addEventBtn" 
+                                    Content="{Binding [AddEvent], Source={x:Static local:LanguageManager.Instance}}" MinWidth="100" Click="AddEventBtn_Click" Margin="0,0,10,0"/>
+                            <Button x:Name="deleteEventBtn" 
+                                    Content="{Binding [DeleteEvent], Source={x:Static local:LanguageManager.Instance}}" MinWidth="100" Click="DeleteEventBtn_Click"/>
+                        </StackPanel>
+
+                        <Border Grid.Row="2" BorderBrush="#D9DCE1" BorderThickness="1" Padding="10" CornerRadius="4" Margin="0,0,0,10" Background="#FAFBFC">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Style="{StaticResource LabelText}"
+                                           Text="{Binding [Name], Source={x:Static local:LanguageManager.Instance}}" Margin="0,0,6,0"/>
+                                <TextBox Grid.Column="1" x:Name="editEventName" Margin="0,0,12,0" Height="26" VerticalContentAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Style="{StaticResource LabelText}"
+                                           Text="{Binding [Date], Source={x:Static local:LanguageManager.Instance}}" Margin="0,0,6,0"/>
+                                <DatePicker Grid.Column="3" x:Name="editEventDate" SelectedDateFormat="Short" Height="26"/>
+                            </Grid>
+                        </Border>
+
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="saveEventBtn" 
+                                    Content="{Binding [SaveEvent], Source={x:Static local:LanguageManager.Instance}}" MinWidth="100" Click="SaveEventBtn_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+
+        <!-- 4. 底部控制按钮 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,18,0,0">
+            <Button x:Name="startButton"  Height="38" MinWidth="150" Margin="0,0,16,0"
+                    Background="#4CAF50" BorderBrush="#4CAF50" Foreground="White" FontWeight="Bold"
+                    Content="{Binding [StartCountdown], Source={x:Static local:LanguageManager.Instance}}"/>
+            <Button x:Name="closeButton"  Height="38" MinWidth="150" Margin="0,0,16,0"
+                    Background="#F44336" BorderBrush="#F44336" Foreground="White" FontWeight="Bold"
+                    Content="{Binding [StopCountdown], Source={x:Static local:LanguageManager.Instance}}"/>
+            <Button x:Name="Btn_sourse"  Height="38" MinWidth="120"
+                    Background="#607D8B" BorderBrush="#607D8B" Foreground="White"
+                    Content="{Binding [WallpaperSwitcher], Source={x:Static local:LanguageManager.Instance}}"/>
+            <Button x:Name="txstButton"  Height="38" MinWidth="120" Margin="20,0,16,0"
+                    Background="Pink" BorderBrush="LightPink" Foreground="White" Content="{Binding [Exam Mode],Source={x:Static local:LanguageManager.Instance}}" Cursor="AppStarting" />
+        </StackPanel>
+    </Grid>
+</Window>
