@@ -1,0 +1,48 @@
+<Window x:Class="gokao.Views.PomodoroWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:gokao"
+        Title="{Binding [PomodoroTitle], Source={x:Static local:LanguageManager.Instance}}"
+        Height="430" Width="460"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="#FAFAFA">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock x:Name="timeText" Text="25:00" FontSize="64" FontWeight="Bold" Foreground="#1976D2"
+                       HorizontalAlignment="Center" Margin="0,0,0,8"/>
+            <TextBlock x:Name="statusText" FontSize="14" Foreground="#757575" HorizontalAlignment="Center" Margin="0,0,0,24"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
+                <Button x:Name="focusModeBtn"
+                        Click="FocusModeBtn_Click" Height="34" MinWidth="110" Padding="12,0" Margin="0,0,10,0"
+                        Background="#1976D2" Foreground="White" BorderBrush="#1976D2" Cursor="Hand"/>
+                <Button x:Name="breakModeBtn"
+                        Click="BreakModeBtn_Click" Height="34" MinWidth="110" Padding="12,0"
+                        Background="#BDBDBD" Foreground="White" BorderBrush="#BDBDBD" Cursor="Hand"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="startPauseBtn"
+                        Content="{Binding [PomodoroStart], Source={x:Static local:LanguageManager.Instance}}"
+                        Click="StartPauseBtn_Click" Height="40" MinWidth="110" Padding="16,0" Margin="0,0,10,0"
+                        Background="#43A047" Foreground="White" BorderBrush="#43A047" Cursor="Hand"/>
+                <Button x:Name="resetBtn"
+                        Content="{Binding [PomodoroReset], Source={x:Static local:LanguageManager.Instance}}"
+                        Click="ResetBtn_Click" Height="40" MinWidth="110" Padding="16,0"
+                        Background="#9E9E9E" Foreground="White" BorderBrush="#9E9E9E" Cursor="Hand"/>
+            </StackPanel>
+            <!-- 自定义时长设置：专注/休息分钟数，应用后即时生效并保存 -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,22,0,0">
+                <TextBlock Text="{Binding [PomodoroFocusMinutesLabel], Source={x:Static local:LanguageManager.Instance}}"
+                           FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="focusMinBox" Width="50" Height="28" FontSize="13" Margin="4,0,14,0"
+                         VerticalContentAlignment="Center" TextAlignment="Center"/>
+                <TextBlock Text="{Binding [PomodoroBreakMinutesLabel], Source={x:Static local:LanguageManager.Instance}}"
+                           FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="breakMinBox" Width="50" Height="28" FontSize="13" Margin="4,0,14,0"
+                         VerticalContentAlignment="Center" TextAlignment="Center"/>
+                <Button x:Name="applyBtn"
+                        Content="{Binding [PomodoroApply], Source={x:Static local:LanguageManager.Instance}}"
+                        Click="ApplyBtn_Click" Height="28" MinWidth="64" Padding="12,0"
+                        Background="#1976D2" Foreground="White" BorderBrush="#1976D2" Cursor="Hand"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
